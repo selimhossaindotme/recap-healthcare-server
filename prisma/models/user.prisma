@@ -1,0 +1,71 @@
+
+model User {
+    id String @id @default(uuid())
+    email String @unique
+    password String
+
+    role userRole @default(PATIENT)
+    needPasswordChange Boolean @default(true)
+    status userStatus @default(ACTIVE)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    admin Admin?
+    patient Patient?
+    doctor Doctor?
+    @@map("users")
+}
+
+model Patient {
+    id String @id @default(uuid())
+    name String
+    email String @unique
+    profilePicture String?
+    phoneNumber String?
+    address String?
+    isDeleted Boolean @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [email], references: [email])
+
+    @@map("patients")
+}
+
+model Doctor {
+    id String @id @default(uuid())
+    name String
+    email String @unique
+    profilePicture String?
+    phoneNumber String?
+    address String?
+    licenseNumber String?
+    registrationNumber String?
+    experienceYears Int?
+    appointmentFee Float?
+    qualifications String?
+    designation String?
+    isDeleted Boolean @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [email], references: [email])
+
+    @@map("doctors")
+}
+
+model Admin {
+    id String @id @default(uuid())
+    name String
+    email String @unique
+    profilePicture String?
+    phoneNumber String?
+    isDeleted Boolean @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    user User @relation(fields: [email], references: [email])
+
+    @@map("admins")
+}
