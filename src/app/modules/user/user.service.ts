@@ -151,7 +151,7 @@ const createAdminServer = async (req: Request) => {
    const userData = {
     email: req.body.admin.email,
     password: hashedPassword,
-    Role: userRole.ADMIN
+    role: userRole.ADMIN
    }
 
    const result = await prisma.$transaction( async (tnx) => {
@@ -178,7 +178,7 @@ const createDoctorServer = async (req: Request) => {
    const userData = {
     email: req.body.doctor.email,
     password: hashedPassword,
-    Role: userRole.DOCTOR
+    role: userRole.DOCTOR
    }
 
    const result = await prisma.$transaction( async (tnx) => {

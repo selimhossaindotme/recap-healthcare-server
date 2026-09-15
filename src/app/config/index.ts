@@ -16,5 +16,11 @@ export const envVars = {
         name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,
         api_secret: process.env.CLOUDINARY_API_SECRET
+    },
+    JWT: {
+        secret: process.env.JWT_SECRET,
+        expires_in: process.env.JWT_EXPIRES_IN,
+        refresh_token_secret: process.env.REFRESH_TOKEN_SECRET,
+        refresh_token_expires_in: process.env.REFRESH_TOKEN_EXPIRES_IN
     }
 }
