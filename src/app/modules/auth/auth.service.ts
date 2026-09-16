@@ -3,6 +3,8 @@ import { userStatus } from "../../../generated/client/enums"
 import { prisma } from "../../shared/prisma"
 import { jwtHelper } from "../../helper/jwtHelpers"
 import { envVars } from "../../config"
+import apiError from "../../errors/apiError"
+import { StatusCodes } from "http-status-codes"
 
 
 const login = async ( payload: { email: string, password: string } ) => {
@@ -17,7 +19,8 @@ const login = async ( payload: { email: string, password: string } ) => {
     const isPasswordMatched = await bcrypt.compare(payload.password, user.password);
 
     if( !isPasswordMatched ) {
-        throw new Error("Password is incorrect");
+
+        throw new apiError(StatusCodes.BAD_REQUEST, "inCorrect password");
     }
 
     const accessToken = jwtHelper.generateToken({
