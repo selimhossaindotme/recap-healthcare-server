@@ -4,6 +4,9 @@ import { paginationHelpers } from "../../helper/paginationHelpers"
 import { prisma } from "../../shared/prisma";
 import { doctorSearchableFields } from "./doctor.constance";
 import type { IDoctorUpdateInput } from "./doctor.interface";
+import apiError from "../../errors/apiError";
+import { StatusCodes } from "http-status-codes";
+import { openai } from "../../helper/open-router";
 
 
 const getAllFromBD = async (filters: any, options: any) => {
@@ -142,7 +145,82 @@ const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
 
 }
 
+
+const getAiSuggestion = async (payload: { symptoms: string[] }) => {
+    if (!(payload && payload.symptoms)) {
+        throw new apiError(StatusCodes.BAD_REQUEST, "Symptoms are required to get AI suggestion");
+    }
+
+    const doctors = await prisma.doctor.findMany({
+        where: {
+            isDeleted: false
+        },
+        include: {
+            doctorSpecialties: {
+                include: {
+                    specialities: true
+                }
+            }
+        }
+    })
+
+    const prompt = `
+You are an AI doctor recommendation assistant.
+
+A patient has the following symptoms:
+
+${payload.symptoms.join(", ")}
+
+Below is the list of doctors available in our healthcare system.
+
+${JSON.stringify(doctors, null, 2)}
+
+Your task is to recommend the most relevant doctors based ONLY on the doctors
+provided above.
+
+IMPORTANT RULES:
+1. Never create or invent a doctor.
+2. Only use doctor IDs from the provided list.
+3. Recommend maximum 3 doctors.
+4. Match symptoms with the doctor's specialties.
+5. Return doctors in relevance order.
+6. This is only a doctor-specialty matching system, not a medical diagnosis.
+7. If the symptoms are not clearly related to any available specialty,
+   still return the closest relevant doctors.
+
+Return ONLY valid JSON in this exact format:
+
+{
+  "recommendations": [
+    {
+      "doctorId": "doctor-id",
+      "reason": "short explanation"
+    }
+  ]
+}
+`;
+
+    const completion = await openai.chat.completions.create({
+        model: 'poolside/laguna-s-2.1:free',
+        messages: [
+            {
+                role: "system",
+                content:
+                    "You are a healthcare doctor recommendation assistant. You must only recommend doctors from the provided database.",
+            },
+            {
+                role: 'user',
+                content: prompt,
+            },
+        ],
+    });
+
+
+
+}
+
 export const doctorService = {
     getAllFromBD,
-    updateIntoDB
+    updateIntoDB,
+    getAiSuggestion
 }
