@@ -9,3 +9,15 @@ enum userStatus {
     INACTIVE
     SUSPENDED
 }
+
+enum appointmentStatus {
+    SCHEDULED
+    INPROGRESS
+    COMPLETED
+    CANCELLED
+}
+
+enum paymentStatus {
+    PAID
+    UNPAID
+}

@@ -25,3 +25,21 @@ export const userStatus = {
 } as const
 
 export type userStatus = (typeof userStatus)[keyof typeof userStatus]
+
+
+export const appointmentStatus = {
+  SCHEDULED: 'SCHEDULED',
+  INPROGRESS: 'INPROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type appointmentStatus = (typeof appointmentStatus)[keyof typeof appointmentStatus]
+
+
+export const paymentStatus = {
+  PAID: 'PAID',
+  UNPAID: 'UNPAID'
+} as const
+
+export type paymentStatus = (typeof paymentStatus)[keyof typeof paymentStatus]
