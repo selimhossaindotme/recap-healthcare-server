@@ -146,7 +146,7 @@ const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
 }
 
 
-const getAiSuggestion = async (payload: { symptoms: string[] }) => {
+const getAiSuggestion = async (payload: { symptoms: string }) => {
     if (!(payload && payload.symptoms)) {
         throw new apiError(StatusCodes.BAD_REQUEST, "Symptoms are required to get AI suggestion");
     }
@@ -164,12 +164,14 @@ const getAiSuggestion = async (payload: { symptoms: string[] }) => {
         }
     })
 
+    // console.log('Doctors from DB:', doctors);
+
     const prompt = `
 You are an AI doctor recommendation assistant.
 
 A patient has the following symptoms:
 
-${payload.symptoms.join(", ")}
+${payload.symptoms}
 
 Below is the list of doctors available in our healthcare system.
 
@@ -194,11 +196,14 @@ Return ONLY valid JSON in this exact format:
   "recommendations": [
     {
       "doctorId": "doctor-id",
+      "specialty": "specialty-name",
+      "allData": "full doctor object from the database",
       "reason": "short explanation"
     }
   ]
 }
 `;
+    // console.log('Prompt sent to AI:', prompt);
 
     const completion = await openai.chat.completions.create({
         model: 'poolside/laguna-s-2.1:free',
@@ -215,6 +220,85 @@ Return ONLY valid JSON in this exact format:
         ],
     });
 
+    // console.log('AI response:', completion.choices[0]?.message);
+    const aiContent = completion.choices[0]?.message?.content;
+
+    if (!aiContent) {
+        throw new apiError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            "AI did not return any recommendation"
+        );
+    }
+
+    // console.log("AI raw response:", aiContent);
+
+    // --------------------------------
+    // 2. Parse AI JSON
+    // --------------------------------
+
+    let aiResult;
+
+    try {
+        aiResult = JSON.parse(aiContent);
+    } catch (error) {
+        // console.error("AI JSON Parse Error:", error);
+
+        throw new apiError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            "Invalid response received from AI"
+        );
+    }
+
+    // console.log("Parsed AI result:", aiResult);
+
+    // --------------------------------
+    // 3. Get recommendations
+    // --------------------------------
+
+    const recommendations = aiResult.recommendations;
+
+    if (
+        !recommendations ||
+        !Array.isArray(recommendations)
+    ) {
+        throw new apiError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            "Invalid AI recommendation format"
+        );
+    }
+
+    // --------------------------------
+    // 4. Match AI doctor IDs
+    //    with database doctors
+    // --------------------------------
+
+    const recommendedDoctors = recommendations
+        .map((recommendation: {
+            doctorId: string;
+            specialty: string;
+            reason: string;
+        }) => {
+            const doctor = doctors.find(
+                (doctor) => doctor.id === recommendation.doctorId
+            );
+
+            if (!doctor) {
+                return null;
+            }
+
+            return {
+                doctor,
+                specialty: recommendation.specialty,
+                reason: recommendation.reason,
+            };
+        })
+        .filter(Boolean);
+
+    // --------------------------------
+    // 5. Return final result
+    // --------------------------------
+
+    return recommendedDoctors;
 
 
 }
