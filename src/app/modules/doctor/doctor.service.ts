@@ -303,8 +303,41 @@ Return ONLY valid JSON in this exact format:
 
 }
 
+const getDoctorById = async (id: string) => {
+    const result = await prisma.doctor.findUniqueOrThrow({
+        where: {
+            id
+        },
+        include: {
+            doctorSchedules: {
+                include: {
+                    schedule: true
+                }
+            },
+            doctorSpecialties: {
+                include: {
+                    specialities: true
+                }
+            }
+        }
+    })
+    return result;
+}
+
+const deleteDoctorFromDB = async (id: string) => {
+    const result = await prisma.doctor.delete({
+        where: {
+            id
+        }
+    })
+
+    return result;
+}
+
 export const doctorService = {
     getAllFromBD,
     updateIntoDB,
-    getAiSuggestion
+    getAiSuggestion,
+    deleteDoctorFromDB,
+    getDoctorById
 }
