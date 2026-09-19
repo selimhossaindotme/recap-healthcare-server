@@ -23,5 +23,9 @@ export const envVars = {
         refresh_token_secret: process.env.REFRESH_TOKEN_SECRET,
         refresh_token_expires_in: process.env.REFRESH_TOKEN_EXPIRES_IN
     },
-    openRouterApiKey: process.env.OPENROUTER_API_KEY
+    openRouterApiKey: process.env.OPENROUTER_API_KEY,
+    stripe: {
+        secret_key: process.env.STRIPE_SECRET_KEY,
+        webhook_secret: process.env.STRIPE_WEBHOOK_SECRE
+    }
 }

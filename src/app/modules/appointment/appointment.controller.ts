@@ -12,7 +12,7 @@ const createAppointment = catchAsync(async (req: Request & { user?:IJwtPayload  
         statusCode: 200,
         success: true,
         message: "Appointment created successfully",
-        data: null
+        data: result
     });
 })
 
