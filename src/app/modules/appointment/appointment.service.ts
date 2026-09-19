@@ -1,7 +1,11 @@
+import type { AnyActionArg } from "react";
 import stripe from "../../helper/stripe";
 import { prisma } from "../../shared/prisma"
 import type { IJwtPayload } from "../../types/common"
 import { v4 as uuidv4 } from 'uuid';
+import { paginationHelpers } from "../../helper/paginationHelpers";
+import { appointmentStatus, userRole, type Prisma } from "../../../generated/client/client";
+import apiError from "../../errors/apiError";
 
 const createAppointment = async (user: IJwtPayload, payload: any) => {
 
@@ -97,16 +101,118 @@ const createAppointment = async (user: IJwtPayload, payload: any) => {
 
         console.log("Stripe session created:", session);
 
-            return {
-                paymentUrl: session.url,
-                
-            };
+        return {
+            paymentUrl: session.url,
+
+        };
+    })
+    return result;
+}
+
+const getMyAppointments = async (user: IJwtPayload, filters: any, options: any) => {
+    const { limit, page, sortBy, sortOrder, skip } = paginationHelpers.calculatePagination(options);
+    const { ...filtersData } = filters;
+
+    const andConditions: Prisma.AppointmentWhereInput[] = [];
+
+    if (user.role == userRole.PATIENT) {
+        andConditions.push({
+            patient: {
+                email: user.email
+            }
         })
-        return result;
     }
 
+    if (user.role === userRole.DOCTOR) {
+        andConditions.push({
+            doctor: {
+                email: user.email
+            }
+        })
+    }
+
+    
+
+    if (Object.keys(filtersData).length > 0) {
+        const filterConditions: Prisma.AppointmentWhereInput[] = Object.keys(filtersData).map((key) => ({
+            [key]: {
+                equals: (filtersData as any)[key],
+            },
+        }))
+        andConditions.push(...filterConditions);
+    }
+
+    const whereConditions: Prisma.AppointmentWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
+
+    const result = await prisma.appointment.findMany({
+        where: whereConditions,
+        skip,
+        take: limit,
+        orderBy: {
+            [sortBy]: sortOrder
+        },
+        include: user.role === userRole.PATIENT
+            ? {
+                doctor: true,
+            }
+            : {
+                patient: true,
+            }
+        
+    })
+
+    const total = await prisma.appointment.count({
+        where: whereConditions
+    })
+
+    return {
+        meta: {
+            page,
+            limit,
+            total
+        },
+        data: result
+    };
+}
+
+const updateAppointmentStatus = async (appointmentId: string, status: appointmentStatus, user: IJwtPayload) => {
+
+    // check appointment exists or not
+    const appointmentData = await prisma.appointment.findUniqueOrThrow({
+        where: {
+            id: appointmentId
+        },
+        include: {
+            doctor: true,
+        }
+    })
+
+    if (user.role === userRole.DOCTOR){
+        if (!(user.email === appointmentData.doctor.email)){
+            throw new apiError(
+                403,
+                "You are not authorized to update this appointment"
+            )
+        }
+
+
+        const result = await prisma.appointment.update({
+            where: {
+                id: appointmentId        
+            },
+            data: {
+                status: status
+            }
+        })
+
+       
+        return result;
+    }    
+}
 
 
 export const appointmentService = {
-        createAppointment
-    }
+    createAppointment,
+    getMyAppointments,
+    updateAppointmentStatus
+}

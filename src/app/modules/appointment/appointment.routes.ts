@@ -5,9 +5,21 @@ import { userRole } from "../../../generated/client/enums";
 
 const router = Router();
 
+router.get(
+    '/my-appointments',
+    auth(userRole.PATIENT, userRole.DOCTOR),
+    appointmentController.getMyAppointments
+)
+
 router.post('/',
     auth(userRole.PATIENT), 
     appointmentController.createAppointment
+)
+
+router.patch(
+    "/:id",
+    auth(userRole.DOCTOR),
+    appointmentController.updateAppointmentStatus
 )
 
 export const appointmentRoutes = router;
