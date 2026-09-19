@@ -9,7 +9,7 @@ import { paymentController } from './app/modules/payment/payment.controller.js';
 const app : Application = express();
 
 app.post(
-    "api/v1/payment/webhook",
+    "/webhook",
     express.raw({ type: "application/json" }),
     paymentController.stripeWebhook
 );

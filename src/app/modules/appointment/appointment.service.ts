@@ -52,7 +52,7 @@ const createAppointment = async (user: IJwtPayload, payload: any) => {
 
         const transactionId = uuidv4();
 
-        await tnx.payment.create({
+        const paymentData = await tnx.payment.create({
             data: {
                 appointmentId: appointmentData.id,
                 amount: doctorData.appointmentFee ?? 0,
@@ -70,7 +70,7 @@ const createAppointment = async (user: IJwtPayload, payload: any) => {
             line_items: [
                 {
                     price_data: {
-                        currency: "usd",
+                        currency: "bdt",
 
                         product_data: {
                             name: "Appointment with " + doctorData.name,
@@ -87,6 +87,7 @@ const createAppointment = async (user: IJwtPayload, payload: any) => {
                 appointmentId: appointmentData.id,
                 patientId: appointmentData.patientId,
                 doctorId: appointmentData.doctorId,
+                paymentId: paymentData.id
             },
 
             success_url: `https://www.google.com/search?q=translate+english+to+bangla&oq=translate+english+to+bangla&gs_lcrp=EgZjaHJvbWUqCAgAEEUYJxg7MggIABBFGCcYOzIGCAEQIxgnMg0IAhAAGIMBGLEDGIAEMgoIAxAAGLEDGIAEMgcIBBAAGIAEMgoIBRAAGLEDGIAEMgoIBhAAGLEDGIAEMgYIBxAFGEDSAQgxNjM4ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8`,
@@ -96,7 +97,10 @@ const createAppointment = async (user: IJwtPayload, payload: any) => {
 
         console.log("Stripe session created:", session);
 
-            return appointmentData;
+            return {
+                paymentUrl: session.url,
+                
+            };
         })
         return result;
     }

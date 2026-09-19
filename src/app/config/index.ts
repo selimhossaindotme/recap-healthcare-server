@@ -26,6 +26,6 @@ export const envVars = {
     openRouterApiKey: process.env.OPENROUTER_API_KEY,
     stripe: {
         secret_key: process.env.STRIPE_SECRET_KEY,
-        webhook_secret: process.env.STRIPE_WEBHOOK_SECRE
+        webhook_secret: process.env.STRIPE_WEBHOOK_SECRET
     }
 }
