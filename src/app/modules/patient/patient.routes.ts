@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { patientController } from "./patient.controller";
+import auth from "../../middlewares/auth";
+import { userRole } from "../../../generated/client/enums";
 
 const router = Router();
 
@@ -17,8 +19,9 @@ router.delete(
     patientController.deletePatientById
 )
 router.patch(
-    '/:id',
-    patientController.updatePatientById
+    '/',
+    auth(userRole.PATIENT),
+    patientController.updateIntoDB
 )
 
 

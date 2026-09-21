@@ -4,6 +4,7 @@ import pick from "../../helper/pick";
 import { patientService } from "./patient.service";
 import sendResponse from "../../shared/sendResponse";
 import { patientFilterableFields } from "./patient.constance";
+import type { IJwtPayload } from "../../types/common";
 
 const getAllFromDB = catchAsync(async ( req: Request, res: Response) => {
 
@@ -47,10 +48,9 @@ const deletePatientById = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
-const updatePatientById = catchAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    const result = await patientService.updatePatientById(id as string, req.body);
+const updateIntoDB = catchAsync(async (req: Request & { user?: IJwtPayload }, res: Response) => {
+    
+     const result = await patientService.updateIntoDB(req.user as IJwtPayload, req.body);
 
     sendResponse(res, {
         statusCode: 200,
@@ -65,5 +65,5 @@ export const patientController = {
     getAllFromDB,
     getPatientById,
     deletePatientById,
-    updatePatientById
+    updateIntoDB
 }

@@ -1,6 +1,7 @@
 import type { Prisma } from "../../../generated/client/client";
 import { paginationHelpers } from "../../helper/paginationHelpers";
 import { prisma } from "../../shared/prisma";
+import type { IJwtPayload } from "../../types/common";
 import { patientSearchableFields } from "./patient.constance";
 
 
@@ -77,28 +78,71 @@ const deletePatientById = async (id: string) => {
     return result;
 }
 
-const updatePatientById = async (id: string, payload: Partial<Prisma.PatientUpdateInput>) => {
+const updateIntoDB = async (user: IJwtPayload, payload: any) => {
+  
+    // patientHealthData  createOrUpdate medicalReport Create patient update
+
+    const { patientHealthData, medicalReport, ...patientData } = payload;
+    
     const patientInfo = await prisma.patient.findUniqueOrThrow({
         where: {
-            id
+            email: user.email,
+            isDeleted: false
         }
     })
-    const patientUpdateData: Prisma.PatientUpdateInput = {
-        ...payload
-    }
-    // console.log('patientUpdateData:', patientUpdateData);
-    const result = await prisma.patient.update({
-        where: {
-            id
-        },
-        data: patientUpdateData
+
+    return await prisma.$transaction(async (tnx) => {
+        await tnx.patient.update({
+            where: {
+                id: patientInfo.id
+            },
+            data: patientData
+        })
+
+        // Update or create patientHealthData
+        if (patientHealthData) {
+            await tnx.patientHealthData.upsert({
+                where: {
+                    patientId: patientInfo.id    
+                },
+                update: patientHealthData,
+                create: {
+                    ...patientHealthData,
+                    patientId: patientInfo.id
+                }
+            })
+        }
+
+        if (medicalReport) {
+            await tnx.medicalReport.create({
+                data: {
+                    ...medicalReport,
+                    patientId: patientInfo.id
+                }
+            })
+        }
+
+        const result = await tnx.patient.findUnique({
+            where: {
+                id: patientInfo.id
+            },
+            include: {
+                patientHealthData: true,
+               medicalReport: true
+            }
+        })
+
+        return result;
+
     })
-    return result;
+
 }
+
+
 
 export const patientService = {
     getAllFromDB,
     getPatientById,
     deletePatientById,
-    updatePatientById
+    updateIntoDB
 }

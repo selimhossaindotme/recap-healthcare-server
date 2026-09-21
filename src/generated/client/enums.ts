@@ -43,3 +43,33 @@ export const paymentStatus = {
 } as const
 
 export type paymentStatus = (typeof paymentStatus)[keyof typeof paymentStatus]
+
+
+export const Gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE'
+} as const
+
+export type Gender = (typeof Gender)[keyof typeof Gender]
+
+
+export const BloodGroup = {
+  A_POSITIVE: 'A_POSITIVE',
+  B_POSITIVE: 'B_POSITIVE',
+  O_POSITIVE: 'O_POSITIVE',
+  AB_POSITIVE: 'AB_POSITIVE',
+  A_NEGATIVE: 'A_NEGATIVE',
+  B_NEGATIVE: 'B_NEGATIVE',
+  O_NEGATIVE: 'O_NEGATIVE',
+  AB_NEGATIVE: 'AB_NEGATIVE'
+} as const
+
+export type BloodGroup = (typeof BloodGroup)[keyof typeof BloodGroup]
+
+
+export const MaritalStatus = {
+  MARRIED: 'MARRIED',
+  UNMARRIED: 'UNMARRIED'
+} as const
+
+export type MaritalStatus = (typeof MaritalStatus)[keyof typeof MaritalStatus]

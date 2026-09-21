@@ -30,6 +30,9 @@ model Patient {
 
     appointments Appointment[]
     prescriptions Prescription[]
+    patientHealthData PatientHealthData[]
+    medicalReport MedicalReport[]
+    reviews Review[]
 
     user User @relation(fields: [email], references: [email])
 
@@ -52,12 +55,13 @@ model Doctor {
     isDeleted Boolean @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-
+    averageRating Float? @default(0.0)
     user User @relation(fields: [email], references: [email])
     doctorSchedules DoctorSchedule[]
     doctorSpecialties DoctorSpecialties[]
     appointments Appointment[]
     prescriptions Prescription[]
+    reviews Review[]
     
     @@map("doctors")
 }

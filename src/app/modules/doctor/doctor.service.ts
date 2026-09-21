@@ -69,7 +69,8 @@ const getAllFromBD = async (filters: any, options: any) => {
                 include: {
                     specialities: true
                 }
-            }
+            },
+            reviews: true,
         }
     })
 
@@ -318,7 +319,8 @@ const getDoctorById = async (id: string) => {
                 include: {
                     specialities: true
                 }
-            }
+            },
+            reviews: true,
         }
     })
     return result;
