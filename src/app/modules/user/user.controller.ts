@@ -3,6 +3,7 @@ import catchAsync from "../../shared/catchAsync";
 import { userService } from "./user.service";
 import sendResponse from "../../shared/sendResponse";
 import pick from "../../helper/pick";
+import type { IJwtPayload } from "../../types/common";
 
 
 const createPatient = catchAsync(async (req: Request, res: Response) => {
@@ -37,7 +38,7 @@ const createDoctor = catchAsync( async ( req: Request, res: Response) => {
     })
 })
 
-const getallFromBD = async (req: Request, res: Response) => {
+const getallFromBD = catchAsync( async ( req: Request, res: Response) => {
     // common --> page, limit, sortBy, sortOrder --> pagination , sorting
     // search --> searchTerm, filter --> searching and filtering
 
@@ -54,11 +55,39 @@ const getallFromBD = async (req: Request, res: Response) => {
         meta: result.meta,
         data: result.data
     })
-}
+})
 
+const getMyProfile = catchAsync( async ( req: Request & {user?: IJwtPayload }, res: Response) => {
+    const user = req.user;
+
+    const result = await userService.getMyProfile(user as IJwtPayload)
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "my profile data fetched",
+        data: result
+    })
+})
+
+const changeProfileStatus = catchAsync( async ( req: Request, res: Response) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const result = await userService.changeProfileStatus(id as string, status);
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Profile status changed successfully",
+        data: result
+    })
+})
+ 
 export const userController = {
     createPatient,
     createAdmin,
     createDoctor,
-    getallFromBD
+    getallFromBD,
+    getMyProfile,
+    changeProfileStatus
 }

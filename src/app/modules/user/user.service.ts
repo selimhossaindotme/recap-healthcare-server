@@ -3,10 +3,11 @@ import type { Request } from "express";
 import { envVars } from "../../config";
 import { prisma } from "../../shared/prisma";
 import { fileUploader } from "../../helper/fileUploader";
-import { userRole } from "../../../generated/client/enums";
+import { userRole, userStatus } from "../../../generated/client/enums";
 import { paginationHelpers } from "../../helper/paginationHelpers";
 import type { Prisma } from "../../../generated/client/client";
 import { userSearchableFields } from "./user.constant";
+import type { IJwtPayload } from "../../types/common";
 
 // const getAllFromDBService = async ({ page, limit, searchTerm , sortBy, sortOrder, role, status }: { page: number; limit: number; searchTerm?: any; sortBy?: any; sortOrder?:  any, role?: any, status?: any }) => {
 
@@ -192,10 +193,77 @@ const createDoctorServer = async (req: Request) => {
    return result;
 };
 
+const getMyProfile = async (user: IJwtPayload) => {
+    const userInfo = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: user.email,
+            status: userStatus.ACTIVE
+        },
+        select: {
+            id: true,
+            email: true,
+            needPasswordChange: true,
+            role: true,
+            status: true
+        }
+    })
+
+    let profileData;
+
+    if(userInfo.role === userRole.PATIENT) {
+        profileData = await prisma.patient.findUniqueOrThrow({
+            where: {
+                email: userInfo.email
+            }
+        })
+    }
+
+    if(userInfo.role === userRole.DOCTOR) {
+        profileData = await prisma.doctor.findUniqueOrThrow({
+            where: {
+                email: userInfo.email
+            }
+        })
+    }
+
+    if(userInfo.role === userRole.ADMIN) {
+        profileData = await prisma.admin.findUniqueOrThrow({
+            where: {
+                email: userInfo.email
+            }
+        })
+    }
+
+    return { ...userInfo, ...profileData }
+}
+
+const changeProfileStatus = async (id: string, status: userStatus) => {
+
+    const userData = await prisma.user.findUniqueOrThrow({
+        where: {
+            id
+        }
+    })
+
+    const updateUserStatus = await prisma.user.update({
+        where: {
+            id
+        },
+        data: {
+            status
+        }
+    })
+
+    return updateUserStatus;
+
+}
+
 
 export const userService = {
     createPatientService,
     createAdminServer,
     createDoctorServer,
-    getAllFromDBService
+    getAllFromDBService,
+    getMyProfile,
+    changeProfileStatus
 };

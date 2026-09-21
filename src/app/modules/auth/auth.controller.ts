@@ -30,6 +30,20 @@ const credentialsLogin = catchAsync( async (req: Request, res: Response, next: N
     })
 })
 
+const getMe = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userSession = req.cookies;
+
+    const result = await authService.getMe(userSession);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "User session retrieved successfully",
+        data: result
+    })
+})
+
 export const authController = {
-    credentialsLogin
+    credentialsLogin,
+    getMe
 }

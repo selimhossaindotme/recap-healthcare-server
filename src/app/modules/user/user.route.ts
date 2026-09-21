@@ -19,6 +19,12 @@ router.post('/create-patient',
     }
 )
 
+router.get(
+    '/me',
+    auth(userRole.PATIENT, userRole.DOCTOR, userRole.ADMIN),
+    userController.getMyProfile
+)
+
 router.post('/create-admin',
     auth(userRole.ADMIN),
     fileUploader.upload.single('file'),
@@ -36,6 +42,12 @@ router.post('/create-doctor',
         req.body = userValidation.createDoctorZodSchema.parse(JSON.parse(req.body.data));
         return userController.createDoctor(req, res, next)
     }
+)
+
+router.patch(
+    '/:id/status',
+    auth(userRole.ADMIN),
+    userController.changeProfileStatus
 )
 
 

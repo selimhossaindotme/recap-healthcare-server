@@ -27,5 +27,10 @@ export const envVars = {
     stripe: {
         secret_key: process.env.STRIPE_SECRET_KEY,
         webhook_secret: process.env.STRIPE_WEBHOOK_SECRET
+    },
+    resetPassword: {
+        token_secret: process.env.RESET_PASSWORD_TOKEN_SECRET,
+        token_expires_in: process.env.RESET_PASSWORD_TOKEN_EXPIRES_IN,
+        link_base_url: process.env.RESET_PASSWORD_LINK_BASE_URL
     }
 }
